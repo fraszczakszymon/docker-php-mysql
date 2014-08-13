@@ -1,17 +1,15 @@
 #!/usr/bin/env sh
 
-if [ ! -d /var/lib/mysql/mysql ]; then
+echo 'Starting mysqld'
+mysqld_safe &
 
-    mysqld_safe --skip-syslog &
+echo 'Waiting for mysqld to come online'
+while [ ! -x /var/run/mysqld/mysqld.sock ]; do
+    sleep 1
+done
 
-    while [ ! -x /var/run/mysqld/mysqld.sock ]; do
-        sleep 1
-    done
+echo "CREATE DATABASE IF NOT EXISTS webapp;" | mysql -uroot
+echo "GRANT ALL PRIVILEGES ON webapp.* TO developer@localhost IDENTIFIED BY 'webapp';" | mysql -uroot
 
-    echo 'Setting root password to root'
-    /usr/bin/mysqladmin -u root password 'root'
-
-    echo 'Shutting down mysqld'
-    mysqladmin -uroot -proot shutdown
-
-fi
+echo 'Shutting down mysqld'
+mysqladmin -uroot shutdown
